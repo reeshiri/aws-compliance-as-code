@@ -1,0 +1,176 @@
+# controls.yaml
+# Maps each compliance_signal from collectors to framework control IDs.
+# One signal can satisfy controls across multiple frameworks simultaneously.
+#
+# Structure:
+#   evidence_id   : matches the folder name under evidence/
+#   signal        : key inside compliance_signals in the artifact
+#   description   : human-readable label for the report
+#   frameworks    : control IDs per framework that this signal satisfies
+
+controls:
+
+  # ── CloudTrail ────────────────────────────────────────────────────────────
+  - evidence_id: aws_cloudtrail_logs
+    signal: trails_enabled
+    description: CloudTrail logging is active on all trails
+    frameworks:
+      pci_dss:   ["10.2.1", "10.2.2"]
+      soc2:      ["CC7.2"]
+      iso_27001: ["A.8.15"]
+      iso_42001: ["6.5.1"]
+
+  - evidence_id: aws_cloudtrail_logs
+    signal: multi_region_coverage
+    description: At least one trail covers all regions
+    frameworks:
+      pci_dss:   ["10.3.3"]
+      soc2:      ["CC7.2"]
+      iso_27001: ["A.8.15"]
+
+  - evidence_id: aws_cloudtrail_logs
+    signal: log_validation_enabled
+    description: Log file validation enabled (tamper detection)
+    frameworks:
+      pci_dss:   ["10.3.2", "10.7.1"]
+      soc2:      ["CC7.2"]
+      iso_27001: ["A.8.15"]
+
+  - evidence_id: aws_cloudtrail_logs
+    signal: active_logging_confirmed
+    description: Write events observed within lookback window
+    frameworks:
+      pci_dss:   ["10.2.1"]
+      soc2:      ["CC7.2"]
+      iso_27001: ["A.8.15"]
+      iso_42001: ["6.5.1"]
+
+  # ── AWS Config ────────────────────────────────────────────────────────────
+  - evidence_id: aws_config_rules
+    signal: all_rules_compliant
+    description: All Config rules are compliant
+    frameworks:
+      pci_dss:   ["2.2.1", "6.3.3"]
+      soc2:      ["CC6.6", "CC7.1"]
+      iso_27001: ["A.8.9"]
+      iso_42001: ["6.6.1"]
+
+  - evidence_id: aws_config_rules
+    signal: compliance_rate_above_90pct
+    description: Config compliance rate is 90% or above
+    frameworks:
+      pci_dss:   ["2.2.1"]
+      soc2:      ["CC6.6"]
+      iso_27001: ["A.8.9"]
+      iso_42001: ["6.6.1"]
+
+  - evidence_id: aws_config_rules
+    signal: no_high_value_rule_failures
+    description: No failures on high-value security rules (MFA, S3, SSH, encryption)
+    frameworks:
+      pci_dss:   ["2.2.1", "7.1.1", "8.4.2"]
+      soc2:      ["CC6.1", "CC6.6", "CC7.1"]
+      iso_27001: ["A.5.15", "A.8.9", "A.8.24"]
+      iso_42001: ["6.4.1", "6.6.1"]
+
+  # ── IAM ───────────────────────────────────────────────────────────────────
+  - evidence_id: aws_iam_posture
+    signal: root_mfa_enabled
+    description: Root account has MFA enabled
+    frameworks:
+      pci_dss:   ["8.4.2"]
+      soc2:      ["CC6.1"]
+      iso_27001: ["A.5.16", "A.5.17"]
+      iso_42001: ["6.4.1"]
+
+  - evidence_id: aws_iam_posture
+    signal: root_has_no_access_keys
+    description: Root account has no active access keys
+    frameworks:
+      pci_dss:   ["7.1.1", "8.2.1"]
+      soc2:      ["CC6.1"]
+      iso_27001: ["A.5.16"]
+
+  - evidence_id: aws_iam_posture
+    signal: all_console_users_have_mfa
+    description: All IAM users with console access have MFA enabled
+    frameworks:
+      pci_dss:   ["8.4.2", "8.4.3"]
+      soc2:      ["CC6.1"]
+      iso_27001: ["A.5.17"]
+      iso_42001: ["6.4.1"]
+
+  - evidence_id: aws_iam_posture
+    signal: no_stale_access_keys_over_90d
+    description: No active access keys older than 90 days
+    frameworks:
+      pci_dss:   ["8.3.9"]
+      soc2:      ["CC6.1", "CC6.2"]
+      iso_27001: ["A.5.16", "A.5.18"]
+
+  - evidence_id: aws_iam_posture
+    signal: password_policy_configured
+    description: An account password policy exists
+    frameworks:
+      pci_dss:   ["8.3.1"]
+      soc2:      ["CC6.1"]
+      iso_27001: ["A.5.17"]
+
+  - evidence_id: aws_iam_posture
+    signal: password_policy_meets_pci
+    description: Password policy meets PCI-DSS minimum requirements
+    frameworks:
+      pci_dss:   ["8.3.1", "8.3.2", "8.3.3", "8.3.6", "8.3.7"]
+      soc2:      ["CC6.1"]
+      iso_27001: ["A.5.17"]
+
+  # ── Security Hub ──────────────────────────────────────────────────────────
+  - evidence_id: aws_securityhub_findings
+    signal: security_hub_enabled
+    description: AWS Security Hub is enabled
+    frameworks:
+      pci_dss:   ["11.3.1", "11.3.2"]
+      soc2:      ["CC7.1", "CC7.2"]
+      iso_27001: ["A.8.8"]
+      iso_42001: ["6.6.2"]
+
+  - evidence_id: aws_securityhub_findings
+    signal: pci_dss_standard_enabled
+    description: PCI DSS Security Hub standard is enabled
+    frameworks:
+      pci_dss:   ["11.3.1"]
+      soc2:      ["CC7.1"]
+      iso_27001: ["A.8.8"]
+
+  - evidence_id: aws_securityhub_findings
+    signal: cis_standard_enabled
+    description: CIS AWS Foundations benchmark standard is enabled
+    frameworks:
+      pci_dss:   ["2.2.1", "11.3.1"]
+      soc2:      ["CC7.1"]
+      iso_27001: ["A.8.8", "A.8.9"]
+
+  - evidence_id: aws_securityhub_findings
+    signal: aws_fsbp_standard_enabled
+    description: AWS Foundational Security Best Practices standard is enabled
+    frameworks:
+      soc2:      ["CC7.1"]
+      iso_27001: ["A.8.8"]
+      iso_42001: ["6.6.2"]
+
+  - evidence_id: aws_securityhub_findings
+    signal: no_critical_findings
+    description: Zero CRITICAL severity findings in Security Hub
+    frameworks:
+      pci_dss:   ["6.3.3", "11.3.1"]
+      soc2:      ["CC7.1", "CC7.2"]
+      iso_27001: ["A.8.8"]
+      iso_42001: ["6.6.2"]
+
+  - evidence_id: aws_securityhub_findings
+    signal: no_high_findings
+    description: Zero HIGH severity findings in Security Hub
+    frameworks:
+      pci_dss:   ["6.3.3"]
+      soc2:      ["CC7.1"]
+      iso_27001: ["A.8.8"]

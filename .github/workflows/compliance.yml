@@ -1,0 +1,251 @@
+# .github/workflows/compliance.yml
+#
+# Runs nightly (and on demand) to:
+#   1. Collect evidence from AWS via boto3 collectors
+#   2. Generate CSV reports from evidence + controls.yaml
+#   3. Commit evidence + reports back to the repo
+#   4. Open a GitHub Issue for any FAIL findings (deduped by title)
+#
+# Required repository secrets:
+#   AWS_ROLE_ARN       — ARN of the ComplianceCollectorRole to assume
+#                        e.g. arn:aws:iam::123456789012:role/ComplianceCollectorRole
+#
+# Required repository variables (Settings > Variables):
+#   AWS_REGION         — e.g. us-east-1
+#
+# OIDC setup (one-time, no long-lived keys needed):
+#   See docs/setup.md for the trust policy to add to your AWS role.
+
+name: Compliance — collect and report
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # 06:00 UTC every Monday
+  workflow_dispatch:        # allow manual trigger from GitHub UI
+    inputs:
+      region:
+        description: "AWS region to collect from (overrides variable)"
+        required: false
+        default: ""
+
+permissions:
+  id-token: write     # needed for OIDC → AWS role assumption
+  contents: write     # needed to commit evidence + reports back to repo
+  issues: write       # needed to open gap issues
+
+jobs:
+  collect-and-report:
+    name: Collect evidence and generate reports
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      AWS_REGION: ${{ inputs.region || vars.AWS_REGION || 'us-east-1' }}
+      EVIDENCE_DIR: evidence
+      REPORTS_DIR: reports
+      PYTHON_VERSION: "3.11"
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so git blame works in audits
+
+      # ── 2. Python setup ───────────────────────────────────────────────────
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyyaml
+
+      # ── 3. Assume AWS role via OIDC (no long-lived keys) ──────────────────
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: compliance-collector-${{ github.run_id }}
+
+      # ── 4. Run collectors ─────────────────────────────────────────────────
+      - name: Run all collectors
+        id: collect
+        run: |
+          cd collectors
+          python run_all.py --region "$AWS_REGION"
+        env:
+          EVIDENCE_DIR: ${{ github.workspace }}/${{ env.EVIDENCE_DIR }}
+
+      # ── 5. Generate CSV reports ───────────────────────────────────────────
+      - name: Generate compliance reports
+        id: report
+        run: |
+          python generate_report.py \
+            --evidence-dir "$EVIDENCE_DIR" \
+            --controls controls.yaml \
+            --output-dir "$REPORTS_DIR"
+
+          # Capture fail counts for the summary step
+          FAIL_COUNT=$(python - <<'EOF'
+          import csv, pathlib, sys
+          path = pathlib.Path("${{ env.REPORTS_DIR }}/01_summary.csv")
+          if not path.exists():
+              print(0); sys.exit(0)
+          rows = list(csv.DictReader(open(path)))
+          print(sum(1 for r in rows if r.get("status") == "FAIL"))
+          EOF
+          )
+          FINDING_COUNT=$(python - <<'EOF'
+          import csv, pathlib, sys
+          path = pathlib.Path("${{ env.REPORTS_DIR }}/03_findings_detail.csv")
+          if not path.exists():
+              print(0); sys.exit(0)
+          print(sum(1 for _ in csv.DictReader(open(path))))
+          EOF
+          )
+          echo "fail_count=${FAIL_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "finding_count=${FINDING_COUNT}" >> "$GITHUB_OUTPUT"
+
+      # ── 6. Commit evidence and reports back to repo ───────────────────────
+      - name: Commit evidence and reports
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add evidence/ reports/
+          git diff --cached --quiet && echo "Nothing to commit" && exit 0
+
+          RUN_DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+          git commit -m "chore(compliance): evidence + reports ${RUN_DATE}
+
+          Collectors : CloudTrail, Config, IAM, Security Hub
+          Region     : ${{ env.AWS_REGION }}
+          Fails      : ${{ steps.report.outputs.fail_count }}
+          Findings   : ${{ steps.report.outputs.finding_count }}
+          Run        : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          git push
+
+      # ── 7. Open / update GitHub Issues for each FAIL ─────────────────────
+      - name: Open issues for failing controls
+        if: steps.report.outputs.fail_count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs   = require('fs');
+            const path = require('path');
+            const { parse } = require('csv-parse/sync');   // not available — use manual parse
+
+            // Simple CSV parser (avoid extra deps)
+            function parseCsv(text) {
+              const [header, ...lines] = text.trim().split('\n');
+              const keys = header.split(',').map(k => k.trim().replace(/^"|"$/g, ''));
+              return lines.map(line => {
+                // Handle quoted fields with commas
+                const vals = [];
+                let cur = '', inQ = false;
+                for (const ch of line) {
+                  if (ch === '"') { inQ = !inQ; }
+                  else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+                  else { cur += ch; }
+                }
+                vals.push(cur.trim());
+                return Object.fromEntries(keys.map((k, i) => [k, (vals[i] || '').replace(/^"|"$/g, '')]));
+              });
+            }
+
+            const summaryPath  = path.join(process.env.GITHUB_WORKSPACE, 'reports/01_summary.csv');
+            const detailPath   = path.join(process.env.GITHUB_WORKSPACE, 'reports/03_findings_detail.csv');
+
+            const summaryRows = parseCsv(fs.readFileSync(summaryPath, 'utf8'));
+            const detailRows  = fs.existsSync(detailPath)
+              ? parseCsv(fs.readFileSync(detailPath, 'utf8'))
+              : [];
+
+            const failRows = summaryRows.filter(r => r.status === 'FAIL');
+
+            // Fetch existing open compliance issues to avoid duplicates
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              state: 'open',
+              labels: 'compliance,automated',
+              per_page: 100,
+            });
+            const existingTitles = new Set(existing.data.map(i => i.title));
+
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const runDate = new Date().toISOString().slice(0, 10);
+
+            for (const row of failRows) {
+              const title = `[Compliance] FAIL — ${row.description}`;
+              if (existingTitles.has(title)) {
+                console.log(`Skipping duplicate: ${title}`);
+                continue;
+              }
+
+              // Find related detail findings for this evidence_id
+              const related = detailRows
+                .filter(d => d.evidence_id === row.evidence_id)
+                .slice(0, 10);
+
+              const detailTable = related.length > 0
+                ? `### Affected resources\n\n| Resource | Detail | Remediation |\n|---|---|---|\n` +
+                  related.map(d =>
+                    `| \`${d.resource}\` | ${d.detail || '—'} | ${d.remediation || '—'} |`
+                  ).join('\n')
+                : '';
+
+              const body = `## Compliance gap detected
+
+            | Field | Value |
+            |---|---|
+            | **Signal** | \`${row.signal}\` |
+            | **Evidence** | \`${row.evidence_id}\` |
+            | **AWS account** | \`${row.aws_account}\` |
+            | **Detected** | ${runDate} |
+            | **PCI-DSS** | ${row['PCI-DSS'] || '—'} |
+            | **SOC 2** | ${row['SOC 2'] || '—'} |
+            | **ISO 27001** | ${row['ISO 27001'] || '—'} |
+            | **ISO 42001** | ${row['ISO 42001'] || '—'} |
+
+            ${detailTable}
+
+            ### Next steps
+            1. Review the evidence artifact in \`evidence/${row.evidence_id}/latest.json\`
+            2. Remediate the finding in AWS
+            3. Re-run the [collector workflow](${runUrl}) to verify
+            4. Close this issue once the signal shows PASS
+
+            ---
+            *Opened automatically by the compliance workflow · [Run ${context.runId}](${runUrl})*`;
+
+              await github.rest.issues.create({
+                owner:  context.repo.owner,
+                repo:   context.repo.repo,
+                title,
+                body,
+                labels: ['compliance', 'automated', row.evidence_id.replace(/_/g, '-')],
+              });
+
+              console.log(`Opened issue: ${title}`);
+            }
+
+      # ── 8. Job summary ────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Compliance run — $(date -u +"%Y-%m-%d %H:%M UTC")
+
+          | | |
+          |---|---|
+          | **Region** | ${{ env.AWS_REGION }} |
+          | **Failing controls** | ${{ steps.report.outputs.fail_count || 'N/A' }} |
+          | **Total findings** | ${{ steps.report.outputs.finding_count || 'N/A' }} |
+          | **Reports** | \`reports/01_summary.csv\`, \`02_control_coverage.csv\`, \`03_findings_detail.csv\` |
+
+          EOF
