@@ -1,5 +1,5 @@
 """
-setup_dummy_data.py — creates realistic dummy AWS resources for compliance testing
+setup_dummy_data.py - creates realistic dummy AWS resources for compliance testing
 
 Creates:
   - Two VPCs (CDE and non-CDE) with subnets, route tables, NACLs
@@ -53,7 +53,7 @@ def section(title):
 def create_networks(ec2):
     section("VPCs and subnets")
 
-    # CDE VPC — cardholder data environment (should be isolated)
+    # CDE VPC - cardholder data environment (should be isolated)
     cde_vpc = ec2.create_vpc(CidrBlock="10.1.0.0/16")
     cde_vpc_id = cde_vpc["Vpc"]["VpcId"]
     ec2.create_tags(Resources=[cde_vpc_id], Tags=TAGS + [
@@ -62,7 +62,7 @@ def create_networks(ec2):
     ])
     ok(f"CDE VPC: {cde_vpc_id}")
 
-    # Non-CDE VPC — general workloads
+    # Non-CDE VPC - general workloads
     corp_vpc = ec2.create_vpc(CidrBlock="10.2.0.0/16")
     corp_vpc_id = corp_vpc["Vpc"]["VpcId"]
     ec2.create_tags(Resources=[corp_vpc_id], Tags=TAGS + [
@@ -118,7 +118,7 @@ def get_az(ec2):
 def create_nacls(ec2, net):
     section("Network ACLs")
 
-    # CDE NACL — intentionally restrictive (good posture)
+    # CDE NACL - intentionally restrictive (good posture)
     cde_nacl = ec2.create_network_acl(VpcId=net["cde_vpc_id"])
     cde_nacl_id = cde_nacl["NetworkAcl"]["NetworkAclId"]
     ec2.create_tags(Resources=[cde_nacl_id], Tags=TAGS + [
@@ -146,13 +146,13 @@ def create_nacls(ec2, net):
     )
     ok(f"CDE NACL (restrictive): {cde_nacl_id}")
 
-    # Corporate NACL — overly permissive (intentional misconfiguration for findings)
+    # Corporate NACL - overly permissive (intentional misconfiguration for findings)
     corp_nacl = ec2.create_network_acl(VpcId=net["corp_vpc_id"])
     corp_nacl_id = corp_nacl["NetworkAcl"]["NetworkAclId"]
     ec2.create_tags(Resources=[corp_nacl_id], Tags=TAGS + [
         {"Key": "Name", "Value": "corp-nacl-permissive"},
     ])
-    # Allow all inbound (misconfiguration — will show in findings)
+    # Allow all inbound (misconfiguration - will show in findings)
     ec2.create_network_acl_entry(
         NetworkAclId=corp_nacl_id, RuleNumber=100, Protocol="-1",
         RuleAction="allow", Egress=False, CidrBlock="0.0.0.0/0",
@@ -161,7 +161,7 @@ def create_nacls(ec2, net):
         NetworkAclId=corp_nacl_id, RuleNumber=100, Protocol="-1",
         RuleAction="allow", Egress=True, CidrBlock="0.0.0.0/0",
     )
-    ok(f"Corporate NACL (permissive — intentional finding): {corp_nacl_id}")
+    ok(f"Corporate NACL (permissive - intentional finding): {corp_nacl_id}")
 
     return {"cde_nacl_id": cde_nacl_id, "corp_nacl_id": corp_nacl_id}
 
@@ -171,7 +171,7 @@ def create_security_groups(ec2, net):
 
     sgs = {}
 
-    # CDE web tier — HTTPS only (good posture)
+    # CDE web tier - HTTPS only (good posture)
     cde_web = ec2.create_security_group(
         GroupName="cde-web-tier",
         Description="CDE web tier - HTTPS only inbound",
@@ -187,7 +187,7 @@ def create_security_groups(ec2, net):
     ok(f"CDE web SG (HTTPS only): {cde_web_id}")
     sgs["cde_web"] = cde_web_id
 
-    # CDE app tier — only accepts traffic from web tier (good posture)
+    # CDE app tier - only accepts traffic from web tier (good posture)
     cde_app = ec2.create_security_group(
         GroupName="cde-app-tier",
         Description="CDE app tier - internal only",
@@ -204,7 +204,7 @@ def create_security_groups(ec2, net):
     ok(f"CDE app SG (web tier only): {cde_app_id}")
     sgs["cde_app"] = cde_app_id
 
-    # Misconfigured SG — SSH open to the world (intentional finding)
+    # Misconfigured SG - SSH open to the world (intentional finding)
     bad_ssh = ec2.create_security_group(
         GroupName="corp-legacy-ssh-open",
         Description="Legacy server - SSH open to world (DO NOT USE IN PROD)",
@@ -219,10 +219,10 @@ def create_security_groups(ec2, net):
         {"IpProtocol": "tcp", "FromPort": 3389, "ToPort": 3389,
          "IpRanges": [{"CidrIp": "0.0.0.0/0", "Description": "RDP - intentional finding"}]},
     ])
-    ok(f"Legacy SG (SSH+RDP open — intentional finding): {bad_ssh_id}")
+    ok(f"Legacy SG (SSH+RDP open - intentional finding): {bad_ssh_id}")
     sgs["bad_ssh"] = bad_ssh_id
 
-    # Misconfigured SG — all ports open internally (intentional finding)
+    # Misconfigured SG - all ports open internally (intentional finding)
     bad_internal = ec2.create_security_group(
         GroupName="corp-all-ports-internal",
         Description="Overly permissive internal SG",
@@ -233,9 +233,9 @@ def create_security_groups(ec2, net):
     bad_internal_id = bad_internal["GroupId"]
     ec2.authorize_security_group_ingress(GroupId=bad_internal_id, IpPermissions=[
         {"IpProtocol": "-1",
-         "IpRanges": [{"CidrIp": "10.0.0.0/8", "Description": "All internal — intentional finding"}]},
+         "IpRanges": [{"CidrIp": "10.0.0.0/8", "Description": "All internal - intentional finding"}]},
     ])
-    ok(f"Permissive internal SG (all ports — intentional finding): {bad_internal_id}")
+    ok(f"Permissive internal SG (all ports - intentional finding): {bad_internal_id}")
     sgs["bad_internal"] = bad_internal_id
 
     return sgs
@@ -248,63 +248,63 @@ def create_iam_users(iam):
 
     users = []
 
-    # User 1 — good posture (MFA on, recent key)
+    # User 1 - good posture (MFA on, recent key)
     try:
         iam.create_user(UserName="svc-compliant-user",
                         Tags=TAGS + [{"Key": "Description",
                                       "Value": "Compliant service account"}])
         key = iam.create_access_key(UserName="svc-compliant-user")["AccessKey"]
-        ok(f"svc-compliant-user (access key created, no MFA — MFA requires physical device)")
+        ok(f"svc-compliant-user (access key created, no MFA - MFA requires physical device)")
         users.append("svc-compliant-user")
     except iam.exceptions.EntityAlreadyExistsException:
         ok("svc-compliant-user already exists, skipping")
 
-    # User 2 — console user without MFA (intentional finding)
+    # User 2 - console user without MFA (intentional finding)
     try:
         iam.create_user(UserName="alice-no-mfa",
                         Tags=TAGS + [{"Key": "Description",
-                                      "Value": "Console user without MFA — intentional finding"}])
+                                      "Value": "Console user without MFA - intentional finding"}])
         iam.create_login_profile(UserName="alice-no-mfa",
                                   Password="Dummy@Password1!",
                                   PasswordResetRequired=True)
-        ok(f"alice-no-mfa (console access, no MFA — intentional finding)")
+        ok(f"alice-no-mfa (console access, no MFA - intentional finding)")
         users.append("alice-no-mfa")
     except iam.exceptions.EntityAlreadyExistsException:
         ok("alice-no-mfa already exists, skipping")
 
-    # User 3 — console user without MFA (intentional finding)
+    # User 3 - console user without MFA (intentional finding)
     try:
         iam.create_user(UserName="bob-no-mfa",
                         Tags=TAGS + [{"Key": "Description",
-                                      "Value": "Console user without MFA — intentional finding"}])
+                                      "Value": "Console user without MFA - intentional finding"}])
         iam.create_login_profile(UserName="bob-no-mfa",
                                   Password="Dummy@Password2!",
                                   PasswordResetRequired=True)
-        ok(f"bob-no-mfa (console access, no MFA — intentional finding)")
+        ok(f"bob-no-mfa (console access, no MFA - intentional finding)")
         users.append("bob-no-mfa")
     except iam.exceptions.EntityAlreadyExistsException:
         ok("bob-no-mfa already exists, skipping")
 
-    # User 4 — service account with two access keys (intentional finding)
+    # User 4 - service account with two access keys (intentional finding)
     try:
         iam.create_user(UserName="svc-dual-keys",
                         Tags=TAGS + [{"Key": "Description",
-                                      "Value": "Service account with multiple keys — finding"}])
+                                      "Value": "Service account with multiple keys - finding"}])
         iam.create_access_key(UserName="svc-dual-keys")
         iam.create_access_key(UserName="svc-dual-keys")
-        ok(f"svc-dual-keys (two active access keys — intentional finding)")
+        ok(f"svc-dual-keys (two active access keys - intentional finding)")
         users.append("svc-dual-keys")
     except iam.exceptions.EntityAlreadyExistsException:
         ok("svc-dual-keys already exists, skipping")
 
-    # User 5 — read-only analyst (good posture, no console, no keys)
+    # User 5 - read-only analyst (good posture, no console, no keys)
     try:
         iam.create_user(UserName="analyst-readonly",
                         Tags=TAGS + [{"Key": "Description",
-                                      "Value": "Read-only analyst, no console or keys"}])
+                                      "Value": "Read-only analyst no console or keys"}])
         iam.attach_user_policy(UserName="analyst-readonly",
                                 PolicyArn="arn:aws:iam::aws:policy/ReadOnlyAccess")
-        ok(f"analyst-readonly (no console, no keys — good posture)")
+        ok(f"analyst-readonly (no console, no keys - good posture)")
         users.append("analyst-readonly")
     except iam.exceptions.EntityAlreadyExistsException:
         ok("analyst-readonly already exists, skipping")
@@ -358,12 +358,12 @@ def create_iam_groups_and_roles(iam):
         iam.create_role(
             RoleName="corp-admin-overpermissioned",
             AssumeRolePolicyDocument=trust,
-            Description="Overpermissioned role — intentional finding",
+            Description="Overpermissioned role - intentional finding",
             Tags=TAGS + [{"Key": "Name", "Value": "corp-admin-overpermissioned"}],
         )
         iam.attach_role_policy(RoleName="corp-admin-overpermissioned",
                                 PolicyArn="arn:aws:iam::aws:policy/AdministratorAccess")
-        ok("Role: corp-admin-overpermissioned (AdministratorAccess — intentional finding)")
+        ok("Role: corp-admin-overpermissioned (AdministratorAccess - intentional finding)")
     except iam.exceptions.EntityAlreadyExistsException:
         ok("corp-admin-overpermissioned already exists, skipping")
 
@@ -376,7 +376,7 @@ def create_s3_buckets(s3, s3_control, account_id, region):
     import random, string
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
 
-    # Private bucket — good posture
+    # Private bucket - good posture
     private_bucket = f"compliance-demo-private-{suffix}"
     kwargs = {"Bucket": private_bucket}
     if region != "us-east-1":
@@ -396,7 +396,7 @@ def create_s3_buckets(s3, s3_control, account_id, region):
     )
     ok(f"Private bucket (versioned, public access blocked): {private_bucket}")
 
-    # Public bucket — intentional misconfiguration for findings
+    # Public bucket - intentional misconfiguration for findings
     public_bucket = f"compliance-demo-public-{suffix}"
     kwargs2 = {"Bucket": public_bucket}
     if region != "us-east-1":
@@ -405,8 +405,8 @@ def create_s3_buckets(s3, s3_control, account_id, region):
     s3.put_bucket_tagging(Bucket=public_bucket,
                            Tagging={"TagSet": TAGS + [{"Key": "Name",
                                                         "Value": "intentional-public-finding"}]})
-    # Leave public access block OFF — will trigger s3-bucket-public-read-prohibited
-    ok(f"Public bucket (no block — intentional finding): {public_bucket}")
+    # Leave public access block OFF - will trigger s3-bucket-public-read-prohibited
+    ok(f"Public bucket (no block - intentional finding): {public_bucket}")
 
     return [private_bucket, public_bucket]
 
@@ -537,7 +537,7 @@ def main():
     account_id = session.client("sts").get_caller_identity()["Account"]
 
     print(f"\n{'='*56}")
-    print(f"  Compliance dummy data — {'DESTROY' if args.destroy else 'CREATE'}")
+    print(f"  Compliance dummy data - {'DESTROY' if args.destroy else 'CREATE'}")
     print(f"  account : {account_id}")
     print(f"  region  : {args.region}")
     print(f"{'='*56}")
@@ -565,19 +565,19 @@ def main():
     print(f"{'='*56}\n")
 
     print("  Intentional findings created:")
-    print("    ✗  alice-no-mfa and bob-no-mfa — console users without MFA")
-    print("    ✗  svc-dual-keys — two active access keys")
-    print("    ✗  corp-legacy-ssh-open — SSH and RDP open to 0.0.0.0/0")
-    print("    ✗  corp-all-ports-internal — all ports open internally")
-    print("    ✗  corp-admin-overpermissioned — AdministratorAccess role")
-    print("    ✗  compliance-demo-public-* — S3 bucket with no public access block")
+    print("    ✗  alice-no-mfa and bob-no-mfa - console users without MFA")
+    print("    ✗  svc-dual-keys - two active access keys")
+    print("    ✗  corp-legacy-ssh-open - SSH and RDP open to 0.0.0.0/0")
+    print("    ✗  corp-all-ports-internal - all ports open internally")
+    print("    ✗  corp-admin-overpermissioned - AdministratorAccess role")
+    print("    ✗  compliance-demo-public-* - S3 bucket with no public access block")
     print()
     print("  Good posture resources created:")
-    print("    ✓  cde-vpc / corp-vpc — network separation")
-    print("    ✓  cde-nacl — restrictive inbound rules")
-    print("    ✓  cde-web-tier / cde-app-tier — tiered security groups")
-    print("    ✓  analyst-readonly — no console, no keys")
-    print("    ✓  compliance-demo-private-* — versioned, public access blocked")
+    print("    ✓  cde-vpc / corp-vpc - network separation")
+    print("    ✓  cde-nacl - restrictive inbound rules")
+    print("    ✓  cde-web-tier / cde-app-tier - tiered security groups")
+    print("    ✓  analyst-readonly - no console, no keys")
+    print("    ✓  compliance-demo-private-* - versioned, public access blocked")
 
 
 if __name__ == "__main__":
