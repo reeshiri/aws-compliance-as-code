@@ -1,6 +1,6 @@
 framework,control_id,overall_status,evidence_count,passing_signals,failing_signals,evidence_ids,signal_descriptions
 ISO 27001,A.5.15,FAIL,1,0,1,aws_config_rules,"No failures on high-value security rules (MFA, S3, SSH, encryption)"
-ISO 27001,A.5.16,PASS,3,3,0,aws_iam_posture,Root account has MFA enabled | Root account has no active access keys | No active access keys older than 90 days
+ISO 27001,A.5.16,FAIL,3,2,1,aws_iam_posture,Root account has MFA enabled | Root account has no active access keys | No active access keys older than 90 days
 ISO 27001,A.5.17,FAIL,4,2,2,aws_iam_posture,Root account has MFA enabled | All IAM users with console access have MFA enabled | An account password policy exists | Password policy meets PCI-DSS minimum requirements
 ISO 27001,A.5.18,PASS,1,1,0,aws_iam_posture,No active access keys older than 90 days
 ISO 27001,A.8.15,FAIL,4,3,1,aws_cloudtrail_logs,CloudTrail logging is active on all trails | At least one trail covers all regions | Log file validation enabled (tamper detection) | Write events observed within lookback window
@@ -20,8 +20,8 @@ PCI-DSS,11.3.1,FAIL,4,1,3,aws_securityhub_findings,AWS Security Hub is enabled |
 PCI-DSS,11.3.2,PASS,1,1,0,aws_securityhub_findings,AWS Security Hub is enabled
 PCI-DSS,2.2.1,FAIL,4,0,4,aws_config_rules; aws_securityhub_findings,"All Config rules are compliant | Config compliance rate is 90% or above | No failures on high-value security rules (MFA, S3, SSH, encryption) | CIS AWS Foundations benchmark standard is enabled"
 PCI-DSS,6.3.3,FAIL,3,0,3,aws_config_rules; aws_securityhub_findings,All Config rules are compliant | Zero CRITICAL severity findings in Security Hub | Zero HIGH severity findings in Security Hub
-PCI-DSS,7.1.1,FAIL,2,1,1,aws_config_rules; aws_iam_posture,"No failures on high-value security rules (MFA, S3, SSH, encryption) | Root account has no active access keys"
-PCI-DSS,8.2.1,PASS,1,1,0,aws_iam_posture,Root account has no active access keys
+PCI-DSS,7.1.1,FAIL,2,0,2,aws_config_rules; aws_iam_posture,"No failures on high-value security rules (MFA, S3, SSH, encryption) | Root account has no active access keys"
+PCI-DSS,8.2.1,FAIL,1,0,1,aws_iam_posture,Root account has no active access keys
 PCI-DSS,8.3.1,FAIL,2,0,2,aws_iam_posture,An account password policy exists | Password policy meets PCI-DSS minimum requirements
 PCI-DSS,8.3.2,FAIL,1,0,1,aws_iam_posture,Password policy meets PCI-DSS minimum requirements
 PCI-DSS,8.3.3,FAIL,1,0,1,aws_iam_posture,Password policy meets PCI-DSS minimum requirements
@@ -30,7 +30,7 @@ PCI-DSS,8.3.7,FAIL,1,0,1,aws_iam_posture,Password policy meets PCI-DSS minimum r
 PCI-DSS,8.3.9,PASS,1,1,0,aws_iam_posture,No active access keys older than 90 days
 PCI-DSS,8.4.2,FAIL,3,2,1,aws_config_rules; aws_iam_posture,"No failures on high-value security rules (MFA, S3, SSH, encryption) | Root account has MFA enabled | All IAM users with console access have MFA enabled"
 PCI-DSS,8.4.3,PASS,1,1,0,aws_iam_posture,All IAM users with console access have MFA enabled
-SOC 2,CC6.1,FAIL,7,4,3,aws_config_rules; aws_iam_posture,"No failures on high-value security rules (MFA, S3, SSH, encryption) | Root account has MFA enabled | Root account has no active access keys | All IAM users with console access have MFA enabled | No active access keys older than 90 days | An account password policy exists | Password policy meets PCI-DSS minimum requirements"
+SOC 2,CC6.1,FAIL,7,3,4,aws_config_rules; aws_iam_posture,"No failures on high-value security rules (MFA, S3, SSH, encryption) | Root account has MFA enabled | Root account has no active access keys | All IAM users with console access have MFA enabled | No active access keys older than 90 days | An account password policy exists | Password policy meets PCI-DSS minimum requirements"
 SOC 2,CC6.2,PASS,1,1,0,aws_iam_posture,No active access keys older than 90 days
 SOC 2,CC6.6,FAIL,3,0,3,aws_config_rules,"All Config rules are compliant | Config compliance rate is 90% or above | No failures on high-value security rules (MFA, S3, SSH, encryption)"
 SOC 2,CC7.1,FAIL,8,2,6,aws_config_rules; aws_securityhub_findings,"All Config rules are compliant | No failures on high-value security rules (MFA, S3, SSH, encryption) | AWS Security Hub is enabled | PCI DSS Security Hub standard is enabled | CIS AWS Foundations benchmark standard is enabled | AWS Foundational Security Best Practices standard is enabled | Zero CRITICAL severity findings in Security Hub | Zero HIGH severity findings in Security Hub"
