@@ -1,0 +1,42 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SageMakerReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:ListModelPackageGroups",
+        "sagemaker:DescribeModelPackageGroup",
+        "sagemaker:ListModelPackages",
+        "sagemaker:DescribeModelPackage",
+        "sagemaker:ListMonitoringSchedules",
+        "sagemaker:DescribeMonitoringSchedule",
+        "sagemaker:ListEndpoints",
+        "sagemaker:DescribeEndpoint"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "BedrockReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:ListFoundationModels",
+        "bedrock:GetFoundationModelAvailability",
+        "bedrock:ListGuardrails",
+        "bedrock:GetModelInvocationLoggingConfiguration"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "S3AIDataProvenance",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketLogging"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

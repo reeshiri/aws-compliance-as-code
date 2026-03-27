@@ -16,12 +16,14 @@ from collect_cloudtrail import CloudTrailCollector
 from collect_config import ConfigCollector
 from collect_iam import IAMCollector
 from collect_securityhub import SecurityHubCollector
+from collect_ai_governance import AIGovernanceCollector
 
 COLLECTORS = [
     ("aws_cloudtrail_logs",      CloudTrailCollector),
     ("aws_config_rules",         ConfigCollector),
     ("aws_iam_posture",          IAMCollector),
     ("aws_securityhub_findings", SecurityHubCollector),
+    ("aws_ai_governance",        AIGovernanceCollector),
 ]
 
 
@@ -56,9 +58,11 @@ def main():
                     print(f"     {tag}  {k}: {label}")
                 elif isinstance(v, int):
                     print(f"     ℹ  {k}: {v}")
-                else:
+                elif isinstance(v, bool):
                     icon = "✓" if v else "✗"
                     print(f"     {icon}  {k}")
+                else:
+                    print(f"     ℹ  {k}: {v}")
 
             if artifact["status"] == "error":
                 errors.append(evidence_id)

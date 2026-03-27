@@ -7,6 +7,17 @@
 #   signal        : key inside compliance_signals in the artifact
 #   description   : human-readable label for the report
 #   frameworks    : control IDs per framework that this signal satisfies
+#
+# ISO 42001:2023 clause reference (for AI-specific controls):
+#   6.1.2  AI risk assessment — identifying and evaluating AI-specific risks
+#   6.2.1  AI objectives — defining measurable goals for AI systems
+#   6.4.1  AI system access controls
+#   6.5.1  AI system activity logging and monitoring
+#   7.4    AI system documentation — records of AI system design and behaviour
+#   8.4    Data management — provenance, quality, and lineage for AI
+#   9.1    Performance monitoring — ongoing measurement of AI system behaviour
+#   9.3    Management review — evidence that AI posture is actively reviewed
+#   10.2   Incident response — handling AI system failures and unexpected outputs
 
 controls:
 
@@ -43,7 +54,7 @@ controls:
       pci_dss:   ["10.2.1"]
       soc2:      ["CC7.2"]
       iso_27001: ["A.8.15"]
-      iso_42001: ["6.5.1"]
+      iso_42001: ["6.5.1", "9.3"]
 
   # ── AWS Config ────────────────────────────────────────────────────────────
   - evidence_id: aws_config_rules
@@ -132,7 +143,7 @@ controls:
       pci_dss:   ["11.3.1", "11.3.2"]
       soc2:      ["CC7.1", "CC7.2"]
       iso_27001: ["A.8.8"]
-      iso_42001: ["6.6.2"]
+      iso_42001: ["6.6.2", "10.2"]
 
   - evidence_id: aws_securityhub_findings
     signal: pci_dss_standard_enabled
@@ -165,7 +176,7 @@ controls:
       pci_dss:   ["6.3.3", "11.3.1"]
       soc2:      ["CC7.1", "CC7.2"]
       iso_27001: ["A.8.8"]
-      iso_42001: ["6.6.2"]
+      iso_42001: ["6.6.2", "10.2"]
 
   - evidence_id: aws_securityhub_findings
     signal: no_high_findings
@@ -174,3 +185,65 @@ controls:
       pci_dss:   ["6.3.3"]
       soc2:      ["CC7.1"]
       iso_27001: ["A.8.8"]
+      iso_42001: ["10.2"]
+
+  # ── AI Governance (ISO 42001 — AI-specific controls) ─────────────────────
+  # These signals come from collect_ai_governance.py and cover the clauses
+  # that are unique to ISO 42001 — the ones not satisfied by general
+  # infrastructure controls above.
+
+  - evidence_id: aws_ai_governance
+    signal: model_registry_configured
+    description: SageMaker model registry exists — AI systems are documented
+    frameworks:
+      iso_42001: ["7.4", "6.2.1"]
+
+  - evidence_id: aws_ai_governance
+    signal: models_have_approval_workflow
+    description: All registered models have an approval status set
+    frameworks:
+      iso_42001: ["6.1.2", "7.4"]
+
+  - evidence_id: aws_ai_governance
+    signal: model_monitoring_configured
+    description: SageMaker Model Monitor schedules are configured
+    frameworks:
+      iso_42001: ["9.1", "6.1.2"]
+
+  - evidence_id: aws_ai_governance
+    signal: endpoint_data_capture_enabled
+    description: Production endpoints have data capture enabled for drift detection
+    frameworks:
+      iso_42001: ["9.1", "8.4"]
+
+  - evidence_id: aws_ai_governance
+    signal: bedrock_invocation_logging
+    description: Amazon Bedrock model invocation logging is enabled
+    frameworks:
+      iso_42001: ["6.5.1", "9.3"]
+
+  - evidence_id: aws_ai_governance
+    signal: bedrock_guardrails_configured
+    description: Amazon Bedrock guardrails are configured for AI risk controls
+    frameworks:
+      iso_42001: ["6.1.2", "6.2.1"]
+
+  - evidence_id: aws_ai_governance
+    signal: ai_data_versioning_enabled
+    description: S3 buckets tagged for AI workloads have versioning enabled
+    frameworks:
+      iso_42001: ["8.4"]
+      iso_27001: ["A.8.10"]
+
+  - evidence_id: aws_ai_governance
+    signal: ai_data_access_logging_enabled
+    description: S3 buckets tagged for AI workloads have access logging enabled
+    frameworks:
+      iso_42001: ["8.4", "6.5.1"]
+      iso_27001: ["A.8.10", "A.8.15"]
+
+  - evidence_id: aws_ai_governance
+    signal: ai_management_events_observed
+    description: AI/ML management events observed in CloudTrail in past 30 days
+    frameworks:
+      iso_42001: ["9.3", "9.1"]
