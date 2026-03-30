@@ -1,20 +1,29 @@
 evidence_id,signal,description,status,collected_at,aws_account,PCI-DSS,SOC 2,ISO 27001,ISO 42001
-aws_cloudtrail_logs,trails_enabled,CloudTrail logging is active on all trails,PASS,2026-03-23T07:03:47.509345+00:00,033113129660,10.2.1; 10.2.2,CC7.2,A.8.15,6.5.1
-aws_cloudtrail_logs,multi_region_coverage,At least one trail covers all regions,PASS,2026-03-23T07:03:47.509345+00:00,033113129660,10.3.3,CC7.2,A.8.15,
-aws_cloudtrail_logs,log_validation_enabled,Log file validation enabled (tamper detection),FAIL,2026-03-23T07:03:47.509345+00:00,033113129660,10.3.2; 10.7.1,CC7.2,A.8.15,
-aws_cloudtrail_logs,active_logging_confirmed,Write events observed within lookback window,PASS,2026-03-23T07:03:47.509345+00:00,033113129660,10.2.1,CC7.2,A.8.15,6.5.1
-aws_config_rules,all_rules_compliant,All Config rules are compliant,FAIL,2026-03-23T07:03:53.434820+00:00,033113129660,2.2.1; 6.3.3,CC6.6; CC7.1,A.8.9,6.6.1
-aws_config_rules,compliance_rate_above_90pct,Config compliance rate is 90% or above,FAIL,2026-03-23T07:03:53.434820+00:00,033113129660,2.2.1,CC6.6,A.8.9,6.6.1
-aws_config_rules,no_high_value_rule_failures,"No failures on high-value security rules (MFA, S3, SSH, encryption)",FAIL,2026-03-23T07:03:53.434820+00:00,033113129660,2.2.1; 7.1.1; 8.4.2,CC6.1; CC6.6; CC7.1,A.5.15; A.8.9; A.8.24,6.4.1; 6.6.1
-aws_iam_posture,root_mfa_enabled,Root account has MFA enabled,PASS,2026-03-23T07:04:31.613446+00:00,033113129660,8.4.2,CC6.1,A.5.16; A.5.17,6.4.1
-aws_iam_posture,root_has_no_access_keys,Root account has no active access keys,FAIL,2026-03-23T07:04:31.613446+00:00,033113129660,7.1.1; 8.2.1,CC6.1,A.5.16,
-aws_iam_posture,all_console_users_have_mfa,All IAM users with console access have MFA enabled,PASS,2026-03-23T07:04:31.613446+00:00,033113129660,8.4.2; 8.4.3,CC6.1,A.5.17,6.4.1
-aws_iam_posture,no_stale_access_keys_over_90d,No active access keys older than 90 days,PASS,2026-03-23T07:04:31.613446+00:00,033113129660,8.3.9,CC6.1; CC6.2,A.5.16; A.5.18,
-aws_iam_posture,password_policy_configured,An account password policy exists,FAIL,2026-03-23T07:04:31.613446+00:00,033113129660,8.3.1,CC6.1,A.5.17,
-aws_iam_posture,password_policy_meets_pci,Password policy meets PCI-DSS minimum requirements,FAIL,2026-03-23T07:04:31.613446+00:00,033113129660,8.3.1; 8.3.2; 8.3.3; 8.3.6; 8.3.7,CC6.1,A.5.17,
-aws_securityhub_findings,security_hub_enabled,AWS Security Hub is enabled,PASS,2026-03-23T07:04:32.489654+00:00,033113129660,11.3.1; 11.3.2,CC7.1; CC7.2,A.8.8,6.6.2
-aws_securityhub_findings,pci_dss_standard_enabled,PCI DSS Security Hub standard is enabled,FAIL,2026-03-23T07:04:32.489654+00:00,033113129660,11.3.1,CC7.1,A.8.8,
-aws_securityhub_findings,cis_standard_enabled,CIS AWS Foundations benchmark standard is enabled,FAIL,2026-03-23T07:04:32.489654+00:00,033113129660,2.2.1; 11.3.1,CC7.1,A.8.8; A.8.9,
-aws_securityhub_findings,aws_fsbp_standard_enabled,AWS Foundational Security Best Practices standard is enabled,PASS,2026-03-23T07:04:32.489654+00:00,033113129660,,CC7.1,A.8.8,6.6.2
-aws_securityhub_findings,no_critical_findings,Zero CRITICAL severity findings in Security Hub,FAIL,2026-03-23T07:04:32.489654+00:00,033113129660,6.3.3; 11.3.1,CC7.1; CC7.2,A.8.8,6.6.2
-aws_securityhub_findings,no_high_findings,Zero HIGH severity findings in Security Hub,FAIL,2026-03-23T07:04:32.489654+00:00,033113129660,6.3.3,CC7.1,A.8.8,
+aws_cloudtrail_logs,trails_enabled,CloudTrail logging is active on all trails,PASS,2026-03-30T07:21:01.052832+00:00,033113129660,10.2.1; 10.2.2,CC7.2,A.8.15,6.5.1
+aws_cloudtrail_logs,multi_region_coverage,At least one trail covers all regions,PASS,2026-03-30T07:21:01.052832+00:00,033113129660,10.3.3,CC7.2,A.8.15,
+aws_cloudtrail_logs,log_validation_enabled,Log file validation enabled (tamper detection),FAIL,2026-03-30T07:21:01.052832+00:00,033113129660,10.3.2; 10.7.1,CC7.2,A.8.15,
+aws_cloudtrail_logs,active_logging_confirmed,Write events observed within lookback window,PASS,2026-03-30T07:21:01.052832+00:00,033113129660,10.2.1,CC7.2,A.8.15,6.5.1; 9.3
+aws_config_rules,all_rules_compliant,All Config rules are compliant,FAIL,2026-03-30T07:21:05.983733+00:00,033113129660,2.2.1; 6.3.3,CC6.6; CC7.1,A.8.9,6.6.1
+aws_config_rules,compliance_rate_above_90pct,Config compliance rate is 90% or above,FAIL,2026-03-30T07:21:05.983733+00:00,033113129660,2.2.1,CC6.6,A.8.9,6.6.1
+aws_config_rules,no_high_value_rule_failures,"No failures on high-value security rules (MFA, S3, SSH, encryption)",FAIL,2026-03-30T07:21:05.983733+00:00,033113129660,2.2.1; 7.1.1; 8.4.2,CC6.1; CC6.6; CC7.1,A.5.15; A.8.9; A.8.24,6.4.1; 6.6.1
+aws_iam_posture,root_mfa_enabled,Root account has MFA enabled,PASS,2026-03-30T07:21:43.914960+00:00,033113129660,8.4.2,CC6.1,A.5.16; A.5.17,6.4.1
+aws_iam_posture,root_has_no_access_keys,Root account has no active access keys,FAIL,2026-03-30T07:21:43.914960+00:00,033113129660,7.1.1; 8.2.1,CC6.1,A.5.16,
+aws_iam_posture,all_console_users_have_mfa,All IAM users with console access have MFA enabled,PASS,2026-03-30T07:21:43.914960+00:00,033113129660,8.4.2; 8.4.3,CC6.1,A.5.17,6.4.1
+aws_iam_posture,no_stale_access_keys_over_90d,No active access keys older than 90 days,PASS,2026-03-30T07:21:43.914960+00:00,033113129660,8.3.9,CC6.1; CC6.2,A.5.16; A.5.18,
+aws_iam_posture,password_policy_configured,An account password policy exists,FAIL,2026-03-30T07:21:43.914960+00:00,033113129660,8.3.1,CC6.1,A.5.17,
+aws_iam_posture,password_policy_meets_pci,Password policy meets PCI-DSS minimum requirements,FAIL,2026-03-30T07:21:43.914960+00:00,033113129660,8.3.1; 8.3.2; 8.3.3; 8.3.6; 8.3.7,CC6.1,A.5.17,
+aws_securityhub_findings,security_hub_enabled,AWS Security Hub is enabled,PASS,2026-03-30T07:21:44.311441+00:00,033113129660,11.3.1; 11.3.2,CC7.1; CC7.2,A.8.8,6.6.2; 10.2
+aws_securityhub_findings,pci_dss_standard_enabled,PCI DSS Security Hub standard is enabled,FAIL,2026-03-30T07:21:44.311441+00:00,033113129660,11.3.1,CC7.1,A.8.8,
+aws_securityhub_findings,cis_standard_enabled,CIS AWS Foundations benchmark standard is enabled,FAIL,2026-03-30T07:21:44.311441+00:00,033113129660,2.2.1; 11.3.1,CC7.1,A.8.8; A.8.9,
+aws_securityhub_findings,aws_fsbp_standard_enabled,AWS Foundational Security Best Practices standard is enabled,PASS,2026-03-30T07:21:44.311441+00:00,033113129660,,CC7.1,A.8.8,6.6.2
+aws_securityhub_findings,no_critical_findings,Zero CRITICAL severity findings in Security Hub,FAIL,2026-03-30T07:21:44.311441+00:00,033113129660,6.3.3; 11.3.1,CC7.1; CC7.2,A.8.8,6.6.2; 10.2
+aws_securityhub_findings,no_high_findings,Zero HIGH severity findings in Security Hub,PASS,2026-03-30T07:21:44.311441+00:00,033113129660,6.3.3,CC7.1,A.8.8,10.2
+aws_ai_governance,model_registry_configured,SageMaker model registry exists — AI systems are documented,FAIL,2026-03-30T07:21:47.108802+00:00,033113129660,,,,7.4; 6.2.1
+aws_ai_governance,models_have_approval_workflow,All registered models have an approval status set,FAIL,2026-03-30T07:21:47.108802+00:00,033113129660,,,,6.1.2; 7.4
+aws_ai_governance,model_monitoring_configured,SageMaker Model Monitor schedules are configured,FAIL,2026-03-30T07:21:47.108802+00:00,033113129660,,,,9.1; 6.1.2
+aws_ai_governance,endpoint_data_capture_enabled,Production endpoints have data capture enabled for drift detection,PASS,2026-03-30T07:21:47.108802+00:00,033113129660,,,,9.1; 8.4
+aws_ai_governance,bedrock_invocation_logging,Amazon Bedrock model invocation logging is enabled,FAIL,2026-03-30T07:21:47.108802+00:00,033113129660,,,,6.5.1; 9.3
+aws_ai_governance,bedrock_guardrails_configured,Amazon Bedrock guardrails are configured for AI risk controls,FAIL,2026-03-30T07:21:47.108802+00:00,033113129660,,,,6.1.2; 6.2.1
+aws_ai_governance,ai_data_versioning_enabled,S3 buckets tagged for AI workloads have versioning enabled,PASS,2026-03-30T07:21:47.108802+00:00,033113129660,,,A.8.10,8.4
+aws_ai_governance,ai_data_access_logging_enabled,S3 buckets tagged for AI workloads have access logging enabled,PASS,2026-03-30T07:21:47.108802+00:00,033113129660,,,A.8.10; A.8.15,8.4; 6.5.1
+aws_ai_governance,ai_management_events_observed,AI/ML management events observed in CloudTrail in past 30 days,FAIL,2026-03-30T07:21:47.108802+00:00,033113129660,,,,9.3; 9.1
