@@ -12,15 +12,16 @@ The output is three CSV reports, a stakeholder-ready HTML dashboard, and a
 formatted Word audit report -- all generated automatically from the same
 evidence collection run.
 
-## Compliance documents
-
-| Document | Description |
-|---|---|
-| [NIST CSF 2.0 Crosswalk](docs/NIST_CSF2_Crosswalk_GCP.docx) | Maps all evidence signals to NIST CSF 2.0 subcategories |
-
 
 ## Sample outputs
 
 ![Compliance Dashboard](docs/screenshots/dashboard.png)
 ![Compliance Dashboard](docs/screenshots/compliance_dashboard_sample.pdf)
 ![Audit Report](docs/screenshots/audit_report_sample.pdf)
+
+
+## Compliance documents
+
+| Document | Description |
+|---|---|
+| [NIST CSF 2.0 Crosswalk](docs/NIST_CSF2_Crosswalk_GCP.docx) | Maps all evidence signals to NIST CSF 2.0 subcategories |
